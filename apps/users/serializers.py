@@ -48,6 +48,11 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         data.update({'user': user_data, 'message': message})
         return data
     
+class UserLookupSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'first_name', 'last_name']
+
 class FriendshipSerializer(serializers.ModelSerializer):
     from_user = UserRegistrationSerializer(read_only=True)
     to_user = UserRegistrationSerializer(read_only=True)

@@ -5,7 +5,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.views import APIView
 from .models import User, Friendship
-from .serializers import UserRegistrationSerializer, CustomTokenObtainPairSerializer, FriendshipSerializer
+from .serializers import UserRegistrationSerializer, CustomTokenObtainPairSerializer, FriendshipSerializer, UserLookupSerializer
 
 
 class UserRegistrationView(APIView):
@@ -33,6 +33,22 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
     
     def get_object(self):
         return self.request.user
+    
+class UserLookupView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        email = request.data.get('email')
+
+        if not email:
+            return Response({'error': 'Email is required.'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            user = User.objects.only('id', 'first_name', 'last_name').get(email=email)
+            serializer = UserLookupSerializer(user)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except User.DoesNotExist:
+            return Response({'error': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
     
 class FriendshipRequestView(APIView):
     permission_classes = [permissions.IsAuthenticated]
