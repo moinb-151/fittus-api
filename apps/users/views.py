@@ -43,12 +43,18 @@ class UserLookupView(APIView):
         if not email:
             return Response({'error': 'Email is required.'}, status=status.HTTP_400_BAD_REQUEST)
         
-        try:
-            user = User.objects.only('id', 'first_name', 'last_name').get(email=email)
-            serializer = UserLookupSerializer(user)
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        except User.DoesNotExist:
-            return Response({'error': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
+        user = User.objects.only("id", "first_name", "last_name").filter(email=email).first()
+
+        if not user or user.id == request.user.id:
+            return Response({"exists": False}, status=status.HTTP_200_OK)
+
+        return Response(
+            {
+                "exists": True,
+                "user": UserLookupSerializer(user).data
+            },
+            status=status.HTTP_200_OK
+        )
     
 class FriendshipRequestView(APIView):
     permission_classes = [permissions.IsAuthenticated]
