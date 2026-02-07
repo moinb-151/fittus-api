@@ -4,6 +4,8 @@ from django.db import transaction
 from ..users.models import User
 from .models import Expense, ExpenseSplit
 from ..groups.models import Group, GroupMember
+from ..balances.utils.update_balances import update_balance
+
 
 class ExpenseCreateSerializer(serializers.Serializer):
     amount = serializers.DecimalField(max_digits=10, decimal_places=2)
@@ -149,6 +151,15 @@ class ExpenseCreateSerializer(serializers.Serializer):
                 )
                 for user, amount in split_map.items()
             ])
+
+            for user, amount in split_map.items():
+                if user != expense.paid_by:
+                    update_balance(
+                        debtor=user,
+                        creditor=expense.paid_by,
+                        amount=amount
+                    )
+
 
         return expense
 
