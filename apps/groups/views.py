@@ -21,14 +21,14 @@ class AddMembersView(APIView):
 
         if not isinstance(member_ids, list) or not member_ids:
             return Response(
-                {"error": "member_ids must be a non-empty list"},
+                {"error": "member_ids must be a non-empty list."},
                 status=status.HTTP_400_BAD_REQUEST
             )
         
         group = Group.objects.filter(id=group_id).first()
         if not group:
             return Response(
-                {"error": "Group not found"},
+                {"error": "Group not found."},
                 status=status.HTTP_404_NOT_FOUND
             )
         
