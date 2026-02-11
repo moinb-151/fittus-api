@@ -4,7 +4,7 @@ from django.db import transaction
 from ..users.models import User
 from .models import Expense, ExpenseSplit
 from ..groups.models import Group, GroupMember
-from ..balances.utils.update_balances import update_balance
+from ..balances.utils.update_balances import add_debt
 
 
 class ExpenseCreateSerializer(serializers.Serializer):
@@ -154,7 +154,7 @@ class ExpenseCreateSerializer(serializers.Serializer):
 
             for user, amount in split_map.items():
                 if user != expense.paid_by:
-                    update_balance(
+                    add_debt(
                         debtor=user,
                         creditor=expense.paid_by,
                         amount=amount
