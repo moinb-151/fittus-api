@@ -1,7 +1,9 @@
+from django.db import transaction
 from decimal import Decimal
 from ..models import Balance
 
-def update_balance(debtor, creditor, amount: Decimal):
+
+def add_debt(debtor, creditor, amount: Decimal):
     
     if amount <= 0:
         return
@@ -42,3 +44,16 @@ def update_balance(debtor, creditor, amount: Decimal):
         to_user=creditor,
         amount=amount
     )
+
+def reduce_debt(debtor, creditor, amount):
+    with transaction.atomic():
+        balance = Balance.objects.select_for_update().get(
+            from_user=debtor,
+            to_user=creditor
+        )
+
+        if amount < balance.amount:
+            balance.amount -= amount
+            balance.save()
+        else:
+            balance.delete()
