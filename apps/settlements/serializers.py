@@ -60,3 +60,17 @@ class SettlementCreateSerializer(serializers.Serializer):
             )
 
         return settlement
+
+class SettlementListSerializer(serializers.ModelSerializer):
+    user_id = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Settlement
+        fields = ["user_id", "amount", "created_at"]
+
+    def get_user_id(self, obj):
+        request_user = self.context["request"].user
+
+        if obj.payer == request_user:
+            return obj.receiver_id
+        return obj.payer_id
