@@ -5,7 +5,9 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from .models import Group, GroupMember
 from ..users.models import User, Friendship
-from .serializers import GroupSerializer
+from ..balances.models import Balance
+from .serializers import GroupSerializer, SimplifiedTransactionSerializer
+from ..balances.utils.simplification import simplify_balances
 
 
 class GroupCreateView(generics.CreateAPIView):
@@ -109,4 +111,48 @@ class AddMembersView(APIView):
             },
             status=status.HTTP_200_OK
         )
-    
+
+class GroupSimplifyView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, group_id):
+        user = request.user
+
+        group = Group.objects.filter(id=group_id).first()
+
+        if not group:
+            return Response(
+                {"error": "Group not found."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        is_member = GroupMember.objects.filter(
+            group=group,
+            user=user
+        ).exists()
+
+        if not is_member:
+            return Response(
+                {"error": "Only group members can view simplified transactions."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        member_ids = GroupMember.objects.filter(
+            group=group
+        ).values_list("user_id", flat=True)
+
+        balances = Balance.objects.filter(
+            from_user_id__in=member_ids,
+            to_user_id__in=member_ids
+        ).select_related("from_user", "to_user")
+
+        simplified = simplify_balances(balances)
+
+        serializer = SimplifiedTransactionSerializer(
+            simplified, many=True
+        )
+
+        return Response(
+            {"transactions": serializer.data},
+            status=status.HTTP_200_OK
+        )

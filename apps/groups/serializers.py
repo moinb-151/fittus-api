@@ -14,3 +14,8 @@ class GroupSerializer(serializers.ModelSerializer):
         group = Group.objects.create(created_by=user, **validated_data)
         GroupMember.objects.create(group=group, user=user, role=GroupMember.ROLE_ADMIN)
         return group
+    
+class SimplifiedTransactionSerializer(serializers.Serializer):
+    from_user_id = serializers.IntegerField(source="from_user.id")
+    to_user_id = serializers.IntegerField(source="to_user.id")
+    amount = serializers.DecimalField(max_digits=10, decimal_places=2)
