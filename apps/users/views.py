@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from drf_spectacular.utils import extend_schema
 from rest_framework import status, permissions, generics
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -6,6 +7,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.views import APIView
 from .models import User, Friendship
 from .serializers import UserRegistrationSerializer, CustomTokenObtainPairSerializer, FriendshipSerializer, UserLookupSerializer
+from .utils.auth import verify_google_token, get_or_create_google_user, generate_tokens
 
 
 class UserRegistrationView(APIView):
@@ -26,6 +28,29 @@ class UserRegistrationView(APIView):
 class CustomTokenObtainPairView(TokenObtainPairView):
     permission_classes = [permissions.AllowAny]
     serializer_class = CustomTokenObtainPairSerializer
+
+class GoogleLoginView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        token = request.data.get('token')
+
+        if not token:
+            return Response({'error': 'Google token is required.'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        google_data = verify_google_token(token)
+
+        if not google_data:
+            return Response({'error': 'Invalid Google token.'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        user = get_or_create_google_user(google_data)
+        tokens = generate_tokens(user)
+
+        return Response({
+            'user': UserRegistrationSerializer(user).data,
+            'access': tokens['access'],
+            'refresh': tokens['refresh'],
+        }, status=status.HTTP_200_OK)
 
 class UserProfileView(generics.RetrieveUpdateAPIView):
     permission_classes = [permissions.IsAuthenticated]

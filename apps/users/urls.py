@@ -1,9 +1,10 @@
 from django.urls import path
-from .views import UserRegistrationView, CustomTokenObtainPairView, UserProfileView, UserLookupView, FriendshipRequestView, FriendshipRequestListView, FriendshipRequestAcceptView, FriendshipRequestRejectView
+from .views import UserRegistrationView, CustomTokenObtainPairView, GoogleLoginView, UserProfileView, UserLookupView, FriendshipRequestView, FriendshipRequestListView, FriendshipRequestAcceptView, FriendshipRequestRejectView
 
 urlpatterns = [
     path('register/', UserRegistrationView.as_view(), name='user-register'),
     path('login/', CustomTokenObtainPairView.as_view(), name='user-login'),
+    path('login/google/', GoogleLoginView.as_view(), name='google-login'),
     path('me/', UserProfileView.as_view(), name='user-profile'),
     path('lookup/', UserLookupView.as_view(), name='user-lookup'),
     path('friend-request/<int:user_id>/', FriendshipRequestView.as_view(), name='friend-request'),

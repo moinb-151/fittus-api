@@ -11,8 +11,18 @@ class Currency(models.Model):
         return f"{self.name} ({self.code})"
 
 class User(AbstractUser):
+    AUTH_PROVIDER_EMAIL = 'email'
+    AUTH_PROVIDER_GOOGLE = 'google'
+
+    AUTH_PROVIDERS = [
+        (AUTH_PROVIDER_EMAIL, "Email"),
+        (AUTH_PROVIDER_GOOGLE, "Google"),
+    ]
+
     username = None
     email = models.EmailField(unique=True)
+    auth_provider = models.CharField(max_length=20, choices=AUTH_PROVIDERS, default=AUTH_PROVIDER_EMAIL)
+    google_id = models.CharField(max_length=255, unique=True, null=True, blank=True)
     mobile_no = models.CharField(max_length=15, unique=True, null=True, blank=True)
     default_currency = models.ForeignKey(Currency, on_delete=models.SET_NULL, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)

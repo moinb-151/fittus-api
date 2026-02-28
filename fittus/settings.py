@@ -108,6 +108,9 @@ SIMPLE_JWT = {
     'UPDATE_LAST_LOGIN': config('UPDATE_LAST_LOGIN', cast=bool)
 }
 
+GOOGLE_CLIENT_ID = config('GOOGLE_CLIENT_ID')
+GOOGLE_CLIENT_SECRET = config('GOOGLE_CLIENT_SECRET')
+
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
