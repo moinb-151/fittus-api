@@ -6,7 +6,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.views import APIView
 from .models import User, Friendship
-from .serializers import UserRegistrationSerializer, CustomTokenObtainPairSerializer, FriendshipSerializer, UserLookupSerializer
+from .serializers import UserRegistrationSerializer, CustomTokenObtainPairSerializer, PasswordChangeSerializer, FriendshipSerializer, UserLookupSerializer
 from .utils.auth import verify_google_token, get_or_create_google_user, generate_tokens
 
 
@@ -59,6 +59,19 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
     def get_object(self):
         return self.request.user
     
+class PasswordChangeView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+        if not user.auth_provider == User.AUTH_PROVIDER_EMAIL:
+            return Response({'error': 'Password change is only available for email-authenticated users.'}, status=status.HTTP_400_BAD_REQUEST)
+        serializer = PasswordChangeSerializer(data=request.data, context={'request': request})
+        if serializer.is_valid():
+            serializer.update(user, serializer.validated_data)
+            return Response({'message': 'Password changed successfully.'}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 class UserLookupView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
