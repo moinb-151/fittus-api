@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'drf_spectacular',
+    'storages',
 
     'apps.users',
     'apps.groups',
@@ -111,6 +112,33 @@ SIMPLE_JWT = {
 GOOGLE_CLIENT_ID = config('GOOGLE_CLIENT_ID')
 GOOGLE_CLIENT_SECRET = config('GOOGLE_CLIENT_SECRET')
 
+AWS_ACCESS_KEY_ID = config('R3_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY = config('R3_ACCESS_KEY_SECRET')
+AWS_STORAGE_BUCKET_NAME = config('R3_BUCKET_NAME')
+AWS_S3_ENDPOINT_URL = config('R3_ENDPOINT_URL')
+AWS_S3_REGION_NAME = config('R3_REGION')
+AWS_S3_SIGNATURE_VERSION = 's3v4'
+AWS_DEFAULT_ACL = None
+AWS_QUERYSTRING_AUTH = True
+MEDIA_URL = '/media/'
+
+
+STORAGES = {
+    'default': {
+        'BACKEND': 'storages.backends.s3boto3.S3Boto3Storage',
+        'OPTIONS': {
+            'access_key': AWS_ACCESS_KEY_ID,
+            'secret_key': AWS_SECRET_ACCESS_KEY,
+            'bucket_name': AWS_STORAGE_BUCKET_NAME,
+            'endpoint_url': AWS_S3_ENDPOINT_URL,
+            'region_name': AWS_S3_REGION_NAME,
+            'signature_version': AWS_S3_SIGNATURE_VERSION,
+        }
+    },
+    'staticfiles': {
+        'BACKEND': 'django.core.files.storage.FileSystemStorage',
+    },
+}
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
