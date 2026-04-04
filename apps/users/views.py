@@ -1,12 +1,13 @@
 from django.shortcuts import render
 from drf_spectacular.utils import extend_schema
 from rest_framework import status, permissions, generics
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.views import APIView
 from .models import User, Friendship
-from .serializers import UserRegistrationSerializer, CustomTokenObtainPairSerializer, PasswordChangeSerializer, FriendshipSerializer, UserLookupSerializer
+from .serializers import UserRegistrationSerializer, CustomTokenObtainPairSerializer, UserProfileSerializer, PasswordChangeSerializer, FriendshipSerializer, UserLookupSerializer
 from .utils.auth import verify_google_token, get_or_create_google_user, generate_tokens
 
 
@@ -54,7 +55,8 @@ class GoogleLoginView(APIView):
 
 class UserProfileView(generics.RetrieveUpdateAPIView):
     permission_classes = [permissions.IsAuthenticated]
-    serializer_class = UserRegistrationSerializer
+    serializer_class = UserProfileSerializer
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
     
     def get_object(self):
         return self.request.user

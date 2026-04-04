@@ -1,6 +1,9 @@
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from .models import User, Currency, Friendship
+from django.conf import settings
+import boto3
+from botocore.client import Config
 import re
 
 class CurrencySerializer(serializers.ModelSerializer):
@@ -69,6 +72,41 @@ class PasswordChangeSerializer(serializers.Serializer):
         instance.save()
         return instance
     
+class UserProfileSerializer(serializers.ModelSerializer):
+    default_currency = CurrencySerializer(read_only=True)
+    profile_photo = serializers.ImageField(required=False)
+
+    class Meta:
+        model = User
+        fields = ['id', 'first_name', 'last_name', 'email', 'mobile_no', 'default_currency', 'profile_photo']
+
+    def get_presigned_url(self, key):
+        if not key:
+            return None
+        
+        s3 = boto3.client(
+            's3',
+            endpoint_url=settings.AWS_S3_ENDPOINT_URL,
+            aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+            aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+            config=Config(signature_version=settings.AWS_S3_SIGNATURE_VERSION),
+        )
+
+        return s3.generate_presigned_url(
+            'get_object',
+            Params={
+                'Bucket': settings.AWS_STORAGE_BUCKET_NAME,
+                'Key': key,
+            },
+            ExpiresIn=60 * 60 * 5
+        )
+    
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        if instance.profile_photo:
+            representation['profile_photo'] = self.get_presigned_url(instance.profile_photo.name)
+        return representation
+        
 class UserLookupSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
