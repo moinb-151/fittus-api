@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from django.conf import settings
 from drf_spectacular.utils import extend_schema
 from rest_framework import status, permissions, generics
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
@@ -29,6 +30,39 @@ class UserRegistrationView(APIView):
 class CustomTokenObtainPairView(TokenObtainPairView):
     permission_classes = [permissions.AllowAny]
     serializer_class = CustomTokenObtainPairSerializer
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            data = serializer.validated_data
+            refresh = data.pop('refresh')
+            access = data.pop('access')
+
+            response = Response(data)
+
+            response.set_cookie(
+                key="access_token",
+                value=access,
+                httponly=settings.SIMPLE_JWT.get("COOKIE_HTTP_ONLY", True),
+                secure=settings.SIMPLE_JWT.get("COOKIE_SECURE", False),
+                samesite=settings.SIMPLE_JWT.get("COOKIE_SAMESITE", "None"),
+                domain=settings.SIMPLE_JWT.get("COOKIE_DOMAIN", None),
+                max_age=settings.SIMPLE_JWT.get("ACCESS_TOKEN_LIFETIME").total_seconds(),
+            )
+
+            response.set_cookie(
+                key="refresh_token",
+                value=refresh,
+                httponly=settings.SIMPLE_JWT.get("COOKIE_HTTP_ONLY", True),
+                secure=settings.SIMPLE_JWT.get("COOKIE_SECURE", False),
+                samesite=settings.SIMPLE_JWT.get("COOKIE_SAMESITE", "None"),
+                domain=settings.SIMPLE_JWT.get("COOKIE_DOMAIN", None),
+                max_age=settings.SIMPLE_JWT.get("REFRESH_TOKEN_LIFETIME").total_seconds(),
+            )
+
+            return response
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class GoogleLoginView(APIView):
     permission_classes = [permissions.AllowAny]
