@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
 from pathlib import Path
-from decouple import config
+from decouple import config, Csv
 from datetime import timedelta
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -26,7 +26,7 @@ SECRET_KEY = config('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', cast=bool)
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=Csv())
 
 
 # Application definition
@@ -106,7 +106,10 @@ SIMPLE_JWT = {
     'SIGNING_KEY': SECRET_KEY,
     'USER_ID_FIELD': 'id',
     'USER_ID_CLAIM': 'user_id',
-    'UPDATE_LAST_LOGIN': config('UPDATE_LAST_LOGIN', cast=bool)
+    'UPDATE_LAST_LOGIN': config('UPDATE_LAST_LOGIN', cast=bool),
+    'COOKIE_SECURE': config('COOKIE_SECURE', cast=bool),
+    'COOKIE_SAMESITE': config('COOKIE_SAMESITE'),
+    'COOKIE_DOMAIN': config('COOKIE_DOMAIN'),
 }
 
 GOOGLE_CLIENT_ID = config('GOOGLE_CLIENT_ID')
